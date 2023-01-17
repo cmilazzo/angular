@@ -45,15 +45,12 @@
     var app = angular.module('myApp', ['elasticsearch']);
     app.service('es', function (esFactory) {
         return esFactory({
-            host: 'http://elastic.vsphere.local:31870',
+            host: 'http://elastic:ipxfkA16URe1kdTe@elastic.vsphere.local:31870',
             log: 'trace',
             ssl: {
                 rejectUnauthorized: false
             },
-            auth: {
-              username: 'elastic',
-              password: 'ipxfkA16URe1kdTe'
-            }
+            index: 'api'
         });
     });
     app.controller('myController', function($scope, $http, es) {
