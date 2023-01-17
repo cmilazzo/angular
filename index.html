@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html ng-app="myApp">
+  <style>
+    .search-input-wrapper {
+    display: inline-block;
+    text-align: center
+    }
+    /* Add some basic styles to the table */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        border: 1px solid #dddddd;
+        padding: 8px;
+        text-align: left;
+    }
+    /* Add some padding and a background color to the search input */
+    .input-group {
+        margin: 20px 0;
+    }
+    .form-control {
+        padding: 12px 20px;
+        background-color: #f9f9f9;
+        border: none;
+    }
+        /* Center the search input */
+        .input-group {
+        margin: 20px auto;
+        display: flex;
+        justify-content: center;
+    }
+    /* Remove the background color and set the border to the default */
+    .form-control {
+        padding: 12px 20px;
+        background-color: transparent;
+        border: 1px solid #ced4da;
+    }
+</style>
+
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular.min.js"></script>
+  <script src="elasticsearch.angular.js"></script>
+  <script>
+    var app = angular.module('myApp', ['elasticsearch']);
+    app.service('es', function (esFactory) {
+        return esFactory({
+            host: 'http://elastic.vsphere.local:31870',
+            log: 'trace',
+            ssl: {
+                rejectUnauthorized: false
+            },
+            auth: {
+              username: 'elastic',
+              password: 'ipxfkA16URe1kdTe'
+            }
+        });
+    });
+    app.controller('myController', function($scope, $http, es) {
+      $scope.searchTerm = '';
+      $scope.search = function() {
+        es.search({
+          index: 'api',
+          q: $scope.searchTerm
+        }).then(function(result) {
+          $scope.data = result.hits.hits;
+        });
+      };
+    });
+  </script>
+</head>
+<body ng-controller="myController">
+  <div class="container">
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <h2>API Repository</h2>
+        </div>
+    </div>
+    <div class="row align-items-center">
+        <div class="col-md-12 text-center">
+            <div class="search-input-wrapper d-flex">
+                <input type="text" class="form-control" ng-model="searchTerm" ng-change="search()" placeholder="Search API by name...">
+                <button class="btn btn-outline-secondary ml-2" type="button" ng-click="search()">Search</button>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Version</th>
+                        <th>Status</th>
+                        <th>Tags</th>
+                        <th>megaid</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="item in data">
+                        <td>{{ item._source.name }}</td>
+                        <td>{{ item._source.version }}</td>
+                        <td>{{ item._source.status }}</td>
+                        <td>{{ item._source.tags }}</td>
+                        <td>{{ item._source.megaid }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+
