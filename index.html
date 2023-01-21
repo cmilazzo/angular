@@ -1,45 +1,44 @@
 <!DOCTYPE html>
 <html ng-app="myApp">
-  <style>
-    .search-input-wrapper {
-    display: inline-block;
-    text-align: center
-    }
-    /* Add some basic styles to the table */
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    th, td {
-        border: 1px solid #dddddd;
-        padding: 8px;
-        text-align: left;
-    }
-    /* Add some padding and a background color to the search input */
-    .input-group {
-        margin: 20px 0;
-    }
-    .form-control {
-        padding: 12px 20px;
-        background-color: #f9f9f9;
-        border: none;
-    }
-        /* Center the search input */
-        .input-group {
-        margin: 20px auto;
-        display: flex;
-        justify-content: center;
-    }
-    /* Remove the background color and set the border to the default */
-    .form-control {
-        padding: 12px 20px;
-        background-color: transparent;
-        border: 1px solid #ced4da;
-    }
-</style>
+    <style>
 
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  border: 1px solid #dddddd;
+  text-align: left;
+}
+
+
+.details {
+    display: none;
+}
+
+/* Color for the search input and button */
+.search-input-wrapper input, .search-input-wrapper button {
+    background-color: #e9e9e9;
+    color: #333;
+}
+
+
+.search-result:hover .details {
+    margin: 1rem;
+    display: block;
+
+}
+
+.card-title, .card-text {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+</style>
 <head>
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular.min.js"></script>
+  <link rel="stylesheet" href="bootstrap.min.css">
+  <script src="angular.min.js"></script>
   <script src="elasticsearch.angular.js"></script>
   <script>
     var app = angular.module('myApp', ['elasticsearch']);
@@ -47,6 +46,7 @@
         return esFactory({
             host: 'http://elastic:ipxfkA16URe1kdTe@elastic.vsphere.local:31870',
             log: 'trace',
+            size: 50,
             ssl: {
                 rejectUnauthorized: false
             },
@@ -56,6 +56,9 @@
     app.controller('myController', function($scope, $http, es) {
       $scope.searchTerm = '';
       $scope.search = function() {
+        if ($scope.searchTerm === '') {
+      $scope.searchTerm = '*';
+    }
         es.search({
           index: 'api',
           q: $scope.searchTerm
@@ -66,47 +69,69 @@
     });
   </script>
 </head>
-<body ng-controller="myController">
-  <div class="container">
-    <div class="row">
-        <div class="col-md-12 text-center">
-            <h2>API Repository</h2>
-        </div>
-    </div>
-    <div class="row align-items-center">
-        <div class="col-md-12 text-center">
-            <div class="search-input-wrapper d-flex">
-                <input type="text" class="form-control" ng-model="searchTerm" ng-change="search()" placeholder="Search API by name...">
-                <button class="btn btn-outline-secondary ml-2" type="button" ng-click="search()">Search</button>
+<body >
+    <div ng-app="myApp" ng-controller="myController" class="bg-light text-dark container-fluid">
+        <div class="container">
+          <div class="row p-2">
+              <div class="col-md-12 text-center">
+                  <h2>API Repository</h2>
+              </div>
+          </div>
+          <div class="row align-items-center p-2">
+              <div class="col-md-12 text-center">
+                  <div class="search-input-wrapper d-flex">
+                      <input type="text" class="form-control" ng-model="searchTerm" ng-change="search()" placeholder="Search API by name...">
+                      <button class="btn btn-outline-secondary ml-2" type="button" ng-click="search()">Search</button>
+                  </div>
+              </div>
+          </div>
+          <div class="search-result p-2" ng-repeat="item in data">
+            <div class="card" ng-mouseover="item.showPopup = true" ng-mouseleave="item.showPopup = false">
+                <div class="card-body">
+                    <h5 class="card-title">{{ item._source.Name }} || {{ item._source.Version }} || {{ item._source['MEGA ID'] }}</h5>
+                    <div class="details" ng-class="{'show': item.showPopup}">
+                        <table class="table-sm">
+                            <tr>
+                              <td>Name</td>
+                              <td>{{ item._source.Name }}</td>
+                            </tr>
+                            <tr>
+                              <td>MEGA ID</td>
+                              <td>{{ item._source['MEGA ID'] }}</td>
+                            </tr>
+                            <tr>
+                              <td>Version</td>
+                              <td>{{ item._source.Version }}</td>
+                            </tr>
+                            <tr>
+                                <td>Status</td>
+                                <td>{{ item._source.Status }}</td>
+                              </tr>
+                              <tr>
+                                <td>Tags</td>
+                                <td>{{ item._source.Tags }}</td>
+                              </tr>
+                              <tr>
+                                <td>yaml</td>
+                                <td>{{ item._source.raml }}</td>
+                              </tr>
+                              <tr>
+                                <td>raml</td>
+                                <td>{{ item._source.yaml }}</td>
+                              </tr>
+                              <tr>
+                                <td>Owner</td>
+                                <td>{{ item._source.owner }}</td>
+                              </tr>
+                          </table>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Version</th>
-                        <th>Status</th>
-                        <th>Tags</th>
-                        <th>megaid</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr ng-repeat="item in data">
-                        <td>{{ item._source.name }}</td>
-                        <td>{{ item._source.version }}</td>
-                        <td>{{ item._source.status }}</td>
-                        <td>{{ item._source.tags }}</td>
-                        <td>{{ item._source.megaid }}</td>
-                    </tr>
-                </tbody>
-            </table>
         </div>
-    </div>
-</div>
-
-</body>
+      </div>
+      
+  </body>
+  
 </html>
 
