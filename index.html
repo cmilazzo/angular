@@ -46,7 +46,6 @@ th, td {
         return esFactory({
             host: 'http://elastic:ipxfkA16URe1kdTe@elastic.vsphere.local:31870',
             log: 'trace',
-            size: 50,
             ssl: {
                 rejectUnauthorized: false
             },
@@ -60,6 +59,7 @@ th, td {
       $scope.searchTerm = '*';
     }
         es.search({
+          size: 50,
           index: 'api',
           q: $scope.searchTerm
         }).then(function(result) {
